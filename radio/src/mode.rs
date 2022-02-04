@@ -4,26 +4,26 @@ use fsapi::{FsApi, Node, Value};
 
 use crate::{Error, Radio};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(u32)]
 pub enum Mode {
     Internet = 0,
     Spotify = 1,
-
-    /// Unused id (I think)
-    /// so used as fallback
-    NoIdea = 2,
+    Dmr = 2,
     MusicPlayer = 3,
     Dab = 4,
     Fm = 5,
     AuxIn = 6,
+
+    /// Fallback do not use this
+    FallBack = 7,
 }
 
 impl Radio {
     pub async fn mode_set(&mut self, mode: Mode) -> Result<(), Error> {
         Mode::set(mode, &self.host, &self.pin).await?;
 
-        self.mode = mode;
+        //self.mode = mode;
         Ok(())
     }
 }
@@ -38,8 +38,14 @@ impl Mode {
         Ok(mode)
     }
 
-    pub async fn set<D: Display>(_mode: Mode, _host: D, _pin: D) -> Result<(), Error> {
-        todo!("No idea how, guess I will figure it out at some point")
+    pub async fn set<D: Display>(mode: Mode, host: D, pin: D) -> Result<(), Error> {
+        if mode == Mode::FallBack {
+            return Err(Error::InvalidValue);
+        }
+
+        dbg!(FsApi::set(Node::SysMode, mode as u32, host, pin).await?);
+
+        Ok(())
     }
 }
 
@@ -51,7 +57,7 @@ impl From<u32> for Mode {
             unsafe { ::std::mem::transmute(mode) }
         } else {
             // If the presets is not valid just return normal
-            Self::NoIdea
+            Self::FallBack
         }
     }
 }
@@ -62,11 +68,12 @@ impl Display for Mode {
         match self {
             Internet => write!(f, "Internet"),
             Spotify => write!(f, "Spotify"),
-            NoIdea => write!(f, "No idea"),
+            Dmr => write!(f, "DMR"),
             MusicPlayer => write!(f, "Music Player"),
             Dab => write!(f, "DAB"),
             Fm => write!(f, "FM"),
             AuxIn => write!(f, "Aux in"),
+            FallBack => write!(f, "Fallback"),
         }
     }
 }

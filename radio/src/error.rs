@@ -39,6 +39,7 @@ impl From<FsApiError> for Error {
         match err {
             FsApiError::WrongPin => Error::Auth,
             FsApiError::Timeout => Error::Timeout,
+            FsApiError::Fail => Error::InvalidValue,
             _ => Error::Oops,
         }
     }

@@ -2,17 +2,18 @@ use std::fmt::Display;
 
 use fsapi::{FsApi, Node};
 
-use crate::Error;
+use crate::{mode::Mode, Error, Radio};
 use info::PlayerInfo;
+
 mod info;
 
 #[derive(Debug)]
 pub struct Player {
-    pub(crate) info: PlayerInfo,
-    //pub(crate) status: Status,
+    pub info: PlayerInfo,
+    pub status: Status,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(u8)]
 pub enum Status {
     /// After switching between modes
@@ -33,16 +34,40 @@ pub enum Status {
     Unknown = 10,
 }
 
+impl Radio {
+    pub async fn player_toggle(&mut self) -> Result<(), Error> {
+        // TODO: Check `self.mode` or `Node::PlayCaps` to check
+        // if toggle is available for the current node.
+        // Currently if not available you get an Error::InvalidValue back
+        Player::toggle(&self.host, &self.pin).await
+    }
+
+    pub async fn player_next(&mut self) -> Result<(), Error> {
+        // TODO: Check `self.mode` or `Node::PlayCaps` to check
+        // if next is available for the current node.
+        // Currently if not available you get an Error::InvalidValue back
+        Player::next(&self.host, &self.pin).await
+    }
+
+    pub async fn player_prev(&mut self) -> Result<(), Error> {
+        // TODO: Check `self.mode` or `Node::PlayCaps` to check
+        // if next is available for the current node.
+        // Currently if not available you get an Error::InvalidValue back
+        Player::next(&self.host, &self.pin).await
+    }
+
+    pub async fn player_get_status(&mut self) -> Result<Status, Error> {
+        Status::get(&self.host, &self.pin).await
+    }
+}
+
 impl Player {
     pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
         let info = PlayerInfo::new(&host, &pin).await?;
 
-        //let status = match FsApi::get(Node::PlayControl, &host, &pin).await? {
-        //    fsapi::Value::U8(status) => Status::from(status),
-        //    _ => unreachable!("SysPlayControl returns a U8"),
-        //};
+        let status = Status::get(&host, &pin).await?;
 
-        Ok(Self { info })
+        Ok(Self { info, status })
     }
 
     async fn control_set<D: Display, O: Display>(option: O, host: D, pin: D) -> Result<(), Error> {
@@ -61,6 +86,17 @@ impl Player {
 
     pub async fn prev<D: Display>(host: D, pin: D) -> Result<(), Error> {
         Self::control_set(4, host, pin).await
+    }
+
+    // TODO: I think there are more options than just: toggle, next, prev
+}
+
+impl Status {
+    pub async fn get<D: Display>(host: D, pin: D) -> Result<Self, Error> {
+        Ok(match FsApi::get(Node::PlayControl, host, pin).await? {
+            fsapi::Value::U8(status) => Status::from(status),
+            _ => unreachable!("SysPlayControl returns a U8"),
+        })
     }
 }
 

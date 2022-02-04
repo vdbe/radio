@@ -1,4 +1,5 @@
 #![feature(mixed_integer_ops)]
+use std::cell::RefCell;
 
 use fsapi::{FsApi, Node, SessionID, Value};
 
@@ -22,11 +23,11 @@ pub struct Radio {
     host: String,
     pin: String,
     session_id: SessionID,
-    audio: Audio,
-    player: Player,
-    power: Power,
-    sleep: Sleep,
-    mode: Mode,
+    pub audio: Audio,
+    pub player: Player,
+    pub power: Power,
+    pub sleep: Sleep,
+    pub mode: Mode,
 }
 
 impl Radio {
