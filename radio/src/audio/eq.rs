@@ -1,11 +1,12 @@
-use std::fmt::Display;
+use std::{borrow::Borrow, fmt::Display};
 
 use crate::{Error, Radio};
 use fsapi::{FsApi, Node, Value};
+use tokio::sync::Mutex;
 
 #[derive(Debug)]
 pub struct Eq {
-    pub(crate) preset: EqPreset,
+    pub(crate) preset: Mutex<EqPreset>,
     pub custom: EqCustom,
 }
 
@@ -25,17 +26,17 @@ pub enum EqPreset {
 
 #[derive(Debug)]
 pub struct EqCustom {
-    pub(crate) loudness: bool,
-    pub(crate) bass: i32,
-    pub(crate) trebble: i32,
+    pub(crate) loudness: Mutex<bool>,
+    pub(crate) bass: Mutex<i32>,
+    pub(crate) trebble: Mutex<i32>,
 }
 
 impl Radio {
-    pub async fn eq_set(&mut self, preset: EqPreset) -> Result<(), Error> {
+    pub async fn eq_set(&self, preset: EqPreset) -> Result<(), Error> {
         self.audio.eq.set(preset, &self.host, &self.pin).await
     }
 
-    pub async fn eq_custom_bass_set(&mut self, bass: i32) -> Result<(), Error> {
+    pub async fn eq_custom_bass_set(&self, bass: i32) -> Result<(), Error> {
         self.audio
             .eq
             .custom
@@ -43,7 +44,7 @@ impl Radio {
             .await
     }
 
-    pub async fn eq_custom_trebble_set(&mut self, trebble: i32) -> Result<(), Error> {
+    pub async fn eq_custom_trebble_set(&self, trebble: i32) -> Result<(), Error> {
         self.audio
             .eq
             .custom
@@ -61,18 +62,16 @@ impl Eq {
 
         let custom = EqCustom::new(&host, &pin).await?;
 
-        Ok(Self { preset, custom })
+        Ok(Self {
+            preset: Mutex::new(preset),
+            custom,
+        })
     }
 
-    pub async fn set<D: Display>(
-        &mut self,
-        preset: EqPreset,
-        host: D,
-        pin: D,
-    ) -> Result<(), Error> {
+    pub async fn set<D: Display>(&self, preset: EqPreset, host: D, pin: D) -> Result<(), Error> {
         FsApi::set(Node::SysAudioEqPreset, preset as u8, &host, &pin).await?;
 
-        self.preset = preset;
+        *self.preset.lock().await = preset;
 
         Ok(())
     }
@@ -86,29 +85,30 @@ impl EqCustom {
         };
 
         let bass = match FsApi::get(Node::SysAudioEqCustomParam0, &host, &pin).await? {
-            Value::S16(bass) => bass.into(),
+            Value::S16(bass) => bass as i32,
             _ => unreachable!("SysAudioEqCustomParam0 returns a S16"),
         };
 
         let trebble = match FsApi::get(Node::SysAudioEqCustomParam1, &host, &pin).await? {
-            Value::S16(bass) => bass.into(),
+            Value::S16(bass) => bass as i32,
             _ => unreachable!("SysAudioEqCustomParam1 returns a S16"),
         };
 
         Ok(Self {
-            loudness,
-            bass,
-            trebble,
+            loudness: Mutex::new(loudness),
+            bass: Mutex::new(bass),
+            trebble: Mutex::new(trebble),
         })
     }
 
     pub async fn set_loudness<D: Display>(
-        &mut self,
+        &self,
         loudness: bool,
         host: D,
         pin: D,
     ) -> Result<(), Error> {
-        if loudness != self.loudness {
+        let current_loudness = *self.loudness.lock().await;
+        if loudness != current_loudness {
             FsApi::set(
                 Node::SysAudioEqLoudness,
                 if loudness { 1 } else { 0 },
@@ -117,40 +117,40 @@ impl EqCustom {
             )
             .await?;
 
-            self.loudness = loudness;
+            *self.loudness.lock().await = loudness;
         }
 
         Ok(())
     }
 
-    pub async fn set_bass<D: Display>(&mut self, bass: i32, host: D, pin: D) -> Result<(), Error> {
-        if bass != self.bass {
+    pub async fn set_bass<D: Display>(&self, bass: i32, host: D, pin: D) -> Result<(), Error> {
+        if bass != *self.bass.lock().await {
             if -7 <= bass && bass <= 7 {
                 FsApi::set(Node::SysAudioEqCustomParam0, bass, host, pin).await?;
             } else {
                 return Err(Error::InvalidValue);
             }
 
-            self.bass = bass;
+            *self.bass.lock().await = bass;
         }
 
         Ok(())
     }
 
     pub async fn set_trebble<D: Display>(
-        &mut self,
+        &self,
         trebble: i32,
         host: D,
         pin: D,
     ) -> Result<(), Error> {
-        if trebble != self.trebble {
+        if trebble != *self.trebble.lock().await {
             if -7 <= trebble && trebble <= 7 {
                 FsApi::set(Node::SysAudioEqCustomParam1, trebble, host, pin).await?;
             } else {
                 return Err(Error::InvalidValue);
             }
 
-            self.trebble = trebble;
+            *self.trebble.lock().await = trebble;
         }
 
         Ok(())

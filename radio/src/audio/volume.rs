@@ -1,26 +1,31 @@
 use std::fmt::Display;
 
 use fsapi::{FsApi, Node};
+use tokio::sync::Mutex;
 
 use crate::{Error, Radio};
 
 #[derive(Debug)]
 pub struct Volume {
-    pub(crate) max_volume: u32,
-    pub(crate) volume: u32,
-    pub(crate) muted: bool,
+    pub max_volume: u32,
+    pub volume: Mutex<u32>,
+    pub muted: Mutex<bool>,
 }
 
 impl Radio {
-    pub async fn volume_up(&mut self, change: i32) -> Result<(), Error> {
+    pub async fn volume_set(&self, volume: u32) -> Result<(), Error> {
+        self.audio.volume.set(volume, &self.host, &self.pin).await
+    }
+
+    pub async fn volume_up(&self, change: i32) -> Result<(), Error> {
         self.audio.volume.up(change, &self.host, &self.pin).await
     }
 
-    pub async fn volume_mute(&mut self, mute: bool) -> Result<(), Error> {
+    pub async fn volume_mute(&self, mute: bool) -> Result<(), Error> {
         self.audio.volume.mute(mute, &self.host, &self.pin).await
     }
 
-    pub async fn volume_toggle(&mut self) -> Result<bool, Error> {
+    pub async fn volume_toggle(&self) -> Result<bool, Error> {
         self.audio.volume.toggle(&self.host, &self.pin).await
     }
 }
@@ -46,12 +51,12 @@ impl Volume {
 
         Ok(Self {
             max_volume,
-            volume,
-            muted,
+            volume: Mutex::new(volume),
+            muted: Mutex::new(muted),
         })
     }
 
-    pub async fn set<D: Display>(&mut self, volume: u32, host: D, pin: D) -> Result<(), Error> {
+    pub async fn set<D: Display>(&self, volume: u32, host: D, pin: D) -> Result<(), Error> {
         let volume = if volume > self.max_volume {
             self.max_volume
         } else {
@@ -60,30 +65,39 @@ impl Volume {
 
         FsApi::set(Node::SysAudioVolume, volume, host, pin).await?;
 
-        self.volume = volume;
+        *self.volume.lock().await = volume;
 
         Ok(())
     }
 
-    pub async fn up<D: Display>(&mut self, change: i32, host: D, pin: D) -> Result<(), Error> {
-        let new_volume = self.volume.checked_add_signed(change).unwrap_or(0);
+    pub async fn up<D: Display>(&self, change: i32, host: D, pin: D) -> Result<(), Error> {
+        let new_volume = self
+            .volume
+            .lock()
+            .await
+            .checked_add_signed(change)
+            .unwrap_or(0);
 
         self.set(new_volume, host, pin).await
     }
 
-    pub async fn mute<D: Display>(&mut self, mute: bool, host: D, pin: D) -> Result<(), Error> {
-        if mute != self.muted {
+    pub async fn mute<D: Display>(&self, mute: bool, host: D, pin: D) -> Result<(), Error> {
+        if self.muted.lock().await.eq(&mute) {
             FsApi::set(Node::SysAudioMute, if mute { 1 } else { 0 }, host, pin).await?;
         };
 
-        self.muted = mute;
+        *self.muted.lock().await = mute;
 
         Ok(())
     }
 
-    pub async fn toggle<D: Display>(&mut self, host: D, pin: D) -> Result<bool, Error> {
-        self.mute(!self.muted, host, pin).await?;
+    pub async fn toggle<D: Display>(&self, host: D, pin: D) -> Result<bool, Error> {
+        let new = !*self.muted.lock().await;
 
-        Ok(self.muted)
+        FsApi::set(Node::SysAudioMute, if new { 1 } else { 0 }, host, pin).await?;
+
+        *self.muted.lock().await = new;
+
+        Ok(new)
     }
 }

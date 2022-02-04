@@ -1,5 +1,6 @@
 use fsapi::Error as FsApiError;
 use std::fmt;
+use tokio::task::JoinError;
 
 /// The default error type for this crate
 #[derive(Debug)]
@@ -18,6 +19,9 @@ pub enum Error {
 
     /// An empty error without further info for when you are lazy
     Empty,
+
+    /// Could not get a lock
+    Lock,
 }
 
 impl fmt::Display for Error {
@@ -27,6 +31,7 @@ impl fmt::Display for Error {
             Error::Timeout => write!(f, "Timeout"),
             Error::Oops => write!(f, "Oops"),
             Error::InvalidValue => write!(f, "Invalid value"),
+            Error::Lock => write!(f, "Could not get a lock"),
             Error::Empty => write!(f, ""),
         }
     }
@@ -42,5 +47,11 @@ impl From<FsApiError> for Error {
             FsApiError::Fail => Error::InvalidValue,
             _ => Error::Oops,
         }
+    }
+}
+
+impl From<JoinError> for Error {
+    fn from(_: JoinError) -> Self {
+        Self::Oops
     }
 }

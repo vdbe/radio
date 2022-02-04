@@ -20,7 +20,7 @@ pub enum Mode {
 }
 
 impl Radio {
-    pub async fn mode_set(&mut self, mode: Mode) -> Result<(), Error> {
+    pub async fn mode_set(&self, mode: Mode) -> Result<(), Error> {
         Mode::set(mode, &self.host, &self.pin).await?;
 
         //self.mode = mode;

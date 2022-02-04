@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::time::Duration;
+use tokio::sync::Mutex;
 
 use fsapi::{FsApi, Node};
 
@@ -9,11 +10,11 @@ use crate::{Error, Radio};
 pub struct Sleep {
     // TODO: replace with DateTime
     /// 0 is disabled
-    pub(crate) sleep_in: Duration,
+    pub(crate) sleep_in: Mutex<Duration>,
 }
 
 impl Radio {
-    pub async fn sleep_in(&mut self, sleep_in: Duration) -> Result<(), Error> {
+    pub async fn sleep_in(&self, sleep_in: Duration) -> Result<(), Error> {
         FsApi::set(Node::SysSleep, sleep_in.as_secs(), &self.host, &self.pin).await?;
 
         Ok(())
@@ -27,7 +28,9 @@ impl Sleep {
             _ => unreachable!("Power returns a U32"),
         };
 
-        Ok(Self { sleep_in })
+        Ok(Self {
+            sleep_in: Mutex::new(sleep_in),
+        })
     }
 
     pub async fn setn<D: Display>(
@@ -38,7 +41,7 @@ impl Sleep {
     ) -> Result<(), Error> {
         FsApi::set(Node::SysSleep, sleep_in.as_secs(), host, pin).await?;
 
-        self.sleep_in = sleep_in;
+        *self.sleep_in.lock().await = sleep_in;
 
         Ok(())
     }

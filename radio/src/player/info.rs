@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::time::Duration;
+use tokio::sync::Mutex;
 
 use fsapi::{FsApi, Node, Value};
 
@@ -8,19 +9,19 @@ use crate::Error;
 #[derive(Debug)]
 pub struct PlayerInfo {
     /// First line of display
-    pub(crate) name: String,
+    pub(crate) name: Mutex<String>,
 
     /// Second line of display
-    pub(crate) text: String,
+    pub(crate) text: Mutex<String>,
 
-    pub(crate) album: String,
-    pub(crate) artist: String,
+    pub(crate) album: Mutex<String>,
+    pub(crate) artist: Mutex<String>,
 
-    pub(crate) duration: Duration,
+    pub(crate) duration: Mutex<Duration>,
 
     // TODO: Figure out when to reset since
     // not all stations send it
-    pub(crate) graphic_uri: String,
+    pub(crate) graphic_uri: Mutex<String>,
 }
 
 impl PlayerInfo {
@@ -56,12 +57,12 @@ impl PlayerInfo {
         };
 
         Ok(Self {
-            name,
-            text,
-            album,
-            artist,
-            duration,
-            graphic_uri,
+            name: Mutex::new(name),
+            text: Mutex::new(text),
+            album: Mutex::new(album),
+            artist: Mutex::new(artist),
+            duration: Mutex::new(duration),
+            graphic_uri: Mutex::new(graphic_uri),
         })
     }
 }

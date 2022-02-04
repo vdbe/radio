@@ -1,8 +1,9 @@
 use std::fmt::Display;
+use tokio::sync::Mutex;
 
 use fsapi::{FsApi, Node};
 
-use crate::{mode::Mode, Error, Radio};
+use crate::{Error, Radio};
 use info::PlayerInfo;
 
 mod info;
@@ -10,7 +11,7 @@ mod info;
 #[derive(Debug)]
 pub struct Player {
     pub info: PlayerInfo,
-    pub status: Status,
+    pub status: Mutex<Status>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -35,28 +36,28 @@ pub enum Status {
 }
 
 impl Radio {
-    pub async fn player_toggle(&mut self) -> Result<(), Error> {
+    pub async fn player_toggle(&self) -> Result<(), Error> {
         // TODO: Check `self.mode` or `Node::PlayCaps` to check
         // if toggle is available for the current node.
         // Currently if not available you get an Error::InvalidValue back
         Player::toggle(&self.host, &self.pin).await
     }
 
-    pub async fn player_next(&mut self) -> Result<(), Error> {
+    pub async fn player_next(&self) -> Result<(), Error> {
         // TODO: Check `self.mode` or `Node::PlayCaps` to check
         // if next is available for the current node.
         // Currently if not available you get an Error::InvalidValue back
         Player::next(&self.host, &self.pin).await
     }
 
-    pub async fn player_prev(&mut self) -> Result<(), Error> {
+    pub async fn player_prev(&self) -> Result<(), Error> {
         // TODO: Check `self.mode` or `Node::PlayCaps` to check
         // if next is available for the current node.
         // Currently if not available you get an Error::InvalidValue back
         Player::next(&self.host, &self.pin).await
     }
 
-    pub async fn player_get_status(&mut self) -> Result<Status, Error> {
+    pub async fn player_get_status(&self) -> Result<Status, Error> {
         Status::get(&self.host, &self.pin).await
     }
 }
@@ -67,7 +68,10 @@ impl Player {
 
         let status = Status::get(&host, &pin).await?;
 
-        Ok(Self { info, status })
+        Ok(Self {
+            info,
+            status: Mutex::new(status),
+        })
     }
 
     async fn control_set<D: Display, O: Display>(option: O, host: D, pin: D) -> Result<(), Error> {
