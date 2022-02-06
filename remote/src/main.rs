@@ -1,5 +1,4 @@
 use dotenv::dotenv;
-use fsapi::Notification;
 use std::env;
 use std::sync::Arc;
 use tokio::task;
@@ -10,20 +9,21 @@ use radio::Radio;
 async fn keep_up_to_date(radio: Arc<Radio>) -> Result<(), Error> {
     loop {
         //let notifications = Radio::get_notifications(radio.clone()).await?;
-        let notifications = radio.get_notifications().await?;
+        if let Some(notifications) = radio.get_notifications().await? {
+            //let mut tasks = Vec::new();
+            for notication in notifications {
+                //let radio = radio.clone();
+                //tasks.push(tokio::spawn(async move {
+                //    radio.handle_notification(notication).await
+                //}));
+                radio.handle_notification(notication).await?;
+            }
 
-        //let mut tasks = Vec::new();
-        for notication in notifications {
-            //let radio = radio.clone();
-            //tasks.push(tokio::spawn(async move {
-            //    radio.handle_notification(notication).await
-            //}));
-            radio.handle_notification(notication).await?;
+            //for task in tasks {
+            //    task.await?;
+            //}
         }
 
-        //for task in tasks {
-        //    task.await?;
-        //}
         task::yield_now().await;
     }
 }
@@ -35,7 +35,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let host = env::var("HOST")?;
     let pin = env::var("PIN")?;
 
+    let radio = Radio::new(host, pin).await?;
+    dbg!(radio);
+    todo!();
+
     let radio = Arc::new(Radio::new(host, pin).await?);
+
     let task = tokio::spawn(keep_up_to_date(radio.clone()));
 
     let mut last_volume = *radio.audio.volume.volume.lock().await;

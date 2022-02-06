@@ -43,7 +43,7 @@ impl Mode {
             return Err(Error::InvalidValue);
         }
 
-        dbg!(FsApi::set(Node::SysMode, mode as u32, host, pin).await?);
+        FsApi::set(Node::SysMode, mode as u32, host, pin).await?;
 
         Ok(())
     }

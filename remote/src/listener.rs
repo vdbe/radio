@@ -13,8 +13,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let session_id = FsApi::create_session(&host, &pin).await?;
 
     loop {
-        for notification in FsApi::get_notifications(session_id, &host, &pin).await? {
-            println!("{}: {}", notification.node, notification.value);
+        if let Some(notifications) = FsApi::get_notifications(session_id, &host, &pin).await? {
+            for notification in notifications {
+                println!("{}: {}", notification.node, notification.value);
+            }
         }
     }
 }

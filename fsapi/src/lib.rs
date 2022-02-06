@@ -30,7 +30,7 @@ struct Response {
 
 const STATUS_FS_OK: &str = "FS_OK";
 const STATUS_FS_FAIL: &str = "FS_FAIL";
-const STATUS_FS_PACKET_BAD: &str = "FS_PACKETBAD";
+const STATUS_FS_PACKET_BAD: &str = "FS_PACKET_BAD";
 const STATUS_FS_NODE_BLOCKED: &str = "FS_NODE_BLOCKED";
 const STATUS_FS_NODE_DOES_NOT_EXIST: &str = "FS_NODE_DOES_NOT_EXIST";
 const STATUS_FS_TIMEOUT: &str = "FS_TIMEOUT";
@@ -87,8 +87,8 @@ pub struct Notification {
 
 #[derive(Debug, PartialEq)]
 pub struct Item {
-    key: u32,
-    fields: Vec<Field>,
+    pub key: u32,
+    pub fields: Vec<Field>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -134,32 +134,32 @@ const NODE_NAV_ACTION_SELECTITEM: &str = "netremote.nav.action.selectItem";
 const NODE_NAV_ACTION_SELECTPRESET: &str = "netremote.nav.action.selectPreset";
 
 // play
-const NODE_PLAY_ADDPRESET: &str = "netremote.play.addPreset";
+const NODE_PLAY_ADDPRESET: &str = "netremote.play.addpreset";
 const NODE_PLAY_CAPS: &str = "netremote.play.caps";
 const NODE_PLAY_CONTROL: &str = "netremote.play.control";
-const NODE_PLAY_ERRORSTR: &str = "netremote.play.errorStr";
+const NODE_PLAY_ERRORSTR: &str = "netremote.play.errorstr";
 const NODE_PLAY_FREQUENCY: &str = "netremote.play.frequency";
 const NODE_PLAY_POSITION: &str = "netremote.play.position";
 const NODE_PLAY_RATE: &str = "netremote.play.rate";
 const NODE_PLAY_REPEAT: &str = "netremote.play.repeat";
 const NODE_PLAY_SCROBBLE: &str = "netremote.play.scrobble";
 const NODE_PLAY_SHUFFLE: &str = "netremote.play.shuffle";
-const NODE_PLAY_SHUFFLESTATUS: &str = "netremote.play.shuffleStatus";
-const NODE_PLAY_SIGNALSTRENGTH: &str = "netremote.play.signalStrength";
+const NODE_PLAY_SHUFFLESTATUS: &str = "netremote.play.shufflestatus";
+const NODE_PLAY_SIGNALSTRENGTH: &str = "netremote.play.signalstrength";
 const NODE_PLAY_STATUS: &str = "netremote.play.status";
 
 // play.info
 const NODE_PLAY_INFO_ALBUM: &str = "netremote.play.info.album";
 const NODE_PLAY_INFO_ARTIST: &str = "netremote.play.info.artist";
 const NODE_PLAY_INFO_DURATION: &str = "netremote.play.info.duration";
-const NODE_PLAY_INFO_GRAPHICURI: &str = "netremote.play.info.graphicUri";
+const NODE_PLAY_INFO_GRAPHICURI: &str = "netremote.play.info.graphicuri";
 const NODE_PLAY_INFO_NAME: &str = "netremote.play.info.name";
 const NODE_PLAY_INFO_TEXT: &str = "netremote.play.info.text";
 
 // play.serviceIds
 const NODE_PLAY_SERVICEIDS_DABENSEMBLEID: &str = "netremote.play.serviceids.dabinsembleid";
 const NODE_PLAY_SERVICEIDS_DABSCIDS: &str = "netremote.play.serviceids.dabscids";
-const NODE_PLAY_SERVICEIDS_DABSERVICEID: &str = "netremote.play.serviceids.dabServiceid";
+const NODE_PLAY_SERVICEIDS_DABSERVICEID: &str = "netremote.play.serviceids.dabserviceid";
 const NODE_PLAY_SERVICEIDS_ECC: &str = "netremote.play.serviceids.ecc";
 const NODE_PLAY_SERVICEIDS_FMRDSPI: &str = "netremote.play.serviceids.fmrdspi";
 
@@ -180,62 +180,62 @@ const NODE_SYS_AUDIO_VOLUME: &str = "netremote.sys.audio.volume";
 const NODE_SYS_AUDIO_MUTE: &str = "netremote.sys.audio.mute";
 
 // sys.caps
-const NODE_SYS_CAPS_CLOCKSOURCELIST: &str = "netremote.sys.caps.clockSourceList";
-const NODE_SYS_CAPS_DABFREQLIST: &str = "netremote.sys.caps.dabFreqList";
-const NODE_SYS_CAPS_EQBANDS: &str = "netremote.sys.caps.eqBands";
-const NODE_SYS_CAPS_EQPRESETS: &str = "netremote.sys.caps.eqPresets";
-const NODE_SYS_CAPS_VALIDMODES: &str = "netremote.sys.caps.validModes";
+const NODE_SYS_CAPS_CLOCKSOURCELIST: &str = "netremote.sys.caps.clocksourcelist";
+const NODE_SYS_CAPS_DABFREQLIST: &str = "netremote.sys.caps.dabfreqlist";
+const NODE_SYS_CAPS_EQBANDS: &str = "netremote.sys.caps.eqbands";
+const NODE_SYS_CAPS_EQPRESETS: &str = "netremote.sys.caps.eqpresets";
+const NODE_SYS_CAPS_VALIDMODES: &str = "netremote.sys.caps.validmodes";
 
-const NODE_SYS_CAPS_FMFREQRANGE_LOWER: &str = "netremote.sys.caps.fmFreqRange.lower";
-const NODE_SYS_CAPS_FMFREQRANGE_STEPSIZE: &str = "netremote.sys.caps.fmFreqRange.stepSize";
-const NODE_SYS_CAPS_FMFREQRANGE_UPPER: &str = "netremote.sys.caps.fmFreqRange.upper";
+const NODE_SYS_CAPS_FMFREQRANGE_LOWER: &str = "netremote.sys.caps.fmfreqrange.lower";
+const NODE_SYS_CAPS_FMFREQRANGE_STEPSIZE: &str = "netremote.sys.caps.fmfreqrange.stepsize";
+const NODE_SYS_CAPS_FMFREQRANGE_UPPER: &str = "netremote.sys.caps.fmfreqrange.upper";
 
-const NODE_SYS_CAPS_VOLUMESTEPS: &str = "netremote.sys.caps.volumeSteps";
+const NODE_SYS_CAPS_VOLUMESTEPS: &str = "netremote.sys.caps.volumesteps";
 
 // sys.clock
 const NODE_SYS_CLOCK_DST: &str = "netremote.sys.clock.dst";
-const NODE_SYS_CLOCK_LOCALDATE: &str = "netremote.sys.clock.localDate";
-const NODE_SYS_CLOCK_LOCALTIME: &str = "netremote.sys.clock.localTime";
+const NODE_SYS_CLOCK_LOCALDATE: &str = "netremote.sys.clock.localdate";
+const NODE_SYS_CLOCK_LOCALTIME: &str = "netremote.sys.clock.localtime";
 const NODE_SYS_CLOCK_MODE: &str = "netremote.sys.clock.mode";
 const NODE_SYS_CLOCK_SOURCE: &str = "netremote.sys.clock.source";
-const NODE_SYS_CLOCK_UTCOFFSET: &str = "netremote.sys.clock.utcOffset";
+const NODE_SYS_CLOCK_UTCOFFSET: &str = "netremote.sys.clock.utcoffset";
 
 // sys.cfg
-const NODE_SYS_CFG_IRAUTOPLAYFLAG: &str = "netremote.sys.clock.irAutoPlayFlag";
+const NODE_SYS_CFG_IRAUTOPLAYFLAG: &str = "netremote.sys.clock.irautoplayflag";
 
 // sys.info
-const NODE_INFO_FRIENDLYNAME: &str = "netremote.sys.info.friendlyName";
-const NODE_INFO_RADIOID: &str = "netremote.sys.info.radioId";
-const NODE_INFO_RADIOPIN: &str = "netremote.sys.info.radioPin";
+const NODE_INFO_FRIENDLYNAME: &str = "netremote.sys.info.friendlyname";
+const NODE_INFO_RADIOID: &str = "netremote.sys.info.radioid";
+const NODE_INFO_RADIOPIN: &str = "netremote.sys.info.radiopin";
 const NODE_INFO_VERSION: &str = "netremote.sys.info.version";
-const NODE_INFO_CONTROLLERNAME: &str = "netremote.sys.info.controllerName";
+const NODE_INFO_CONTROLLERNAME: &str = "netremote.sys.info.controllername";
 
 // sys.isu
 const NODE_ISU_CONTROL: &str = "netremote.sys.isu.control";
 const NODE_ISU_STATE: &str = "netremote.sys.isu.state";
 
 // sys.net
-const NODE_NET_IPCONFIG_ADDRESS: &str = "netremote.net.ipConfig.address";
-const NODE_NET_IPCONFIG_DHCP: &str = "netremote.net.ipConfig.dhcp";
-const NODE_NET_IPCONFIG_DNSPRIMARY: &str = "netremote.net.ipConfig.dnsPrimary";
-const NODE_NET_IPCONFIG_DNSECUNDARY: &str = "netremote.net.ipConfig.dnsSecundary";
-const NODE_NET_IPCONFIG_GATEWAY: &str = "netremote.net.ipConfig.gateway";
-const NODE_NET_IPCONFIG_SUBNETMASK: &str = "netremote.net.ipConfig.subnetMask";
-const NODE_NET_IPCONFIG_KEEPCONNECTED: &str = "netremote.net.ipConfig.keepConnected";
+const NODE_NET_IPCONFIG_ADDRESS: &str = "netremote.net.ipconfig.address";
+const NODE_NET_IPCONFIG_DHCP: &str = "netremote.net.ipconfig.dhcp";
+const NODE_NET_IPCONFIG_DNSPRIMARY: &str = "netremote.net.ipconfig.dnsprimary";
+const NODE_NET_IPCONFIG_DNSECUNDARY: &str = "netremote.net.ipconfig.dnssecundary";
+const NODE_NET_IPCONFIG_GATEWAY: &str = "netremote.net.ipconfig.gateway";
+const NODE_NET_IPCONFIG_SUBNETMASK: &str = "netremote.net.ipconfig.subnetmask";
+const NODE_NET_IPCONFIG_KEEPCONNECTED: &str = "netremote.net.ipconfig.keepconnected";
 
-const NODE_NET_WIRED_INTERFACEENABLE: &str = "netremote.net.wired.interfaceEnable";
-const NODE_NET_WIRED_MACADDRESS: &str = "netremote.net.wired.macAddress";
+const NODE_NET_WIRED_INTERFACEENABLE: &str = "netremote.net.wired.interfaceenable";
+const NODE_NET_WIRED_MACADDRESS: &str = "netremote.net.wired.macaddress";
 
-const NODE_NET_WLAN_CONNECTEDSSID: &str = "netremote.net.wlan.connectedSSID";
-const NODE_NET_WLAN_INTERFACEENABLE: &str = "netremote.net.wlan.interfaceEnable";
-const NODE_NET_WLAN_MACADDRESS: &str = "netremote.net.wlan.macAddress";
+const NODE_NET_WLAN_CONNECTEDSSID: &str = "netremote.net.wlan.connectedssid";
+const NODE_NET_WLAN_INTERFACEENABLE: &str = "netremote.net.wlan.interfaceenable";
+const NODE_NET_WLAN_MACADDRESS: &str = "netremote.net.wlan.macaddress";
 const NODE_NET_WLAN_RSSI: &str = "netremote.net.wlan.rsii";
-const NODE_NET_WLAN_SETAUTHTYPE: &str = "netremote.net.wlan.setAuthType";
-const NODE_NET_WLAN_SETENCTYPE: &str = "netremote.net.wlan.setEncType";
+const NODE_NET_WLAN_SETAUTHTYPE: &str = "netremote.net.wlan.setauthtype";
+const NODE_NET_WLAN_SETENCTYPE: &str = "netremote.net.wlan.setenctype";
 
 // sys.rsa
-const NODE_SYS_RSA_PUBLICKEY: &str = "netremote.sys.rsa.publicKey";
-const NODE_SYS_RSA_STATUS: &str = "netremote.sys.rsa.statusk";
+const NODE_SYS_RSA_PUBLICKEY: &str = "netremote.sys.rsa.publickey";
+const NODE_SYS_RSA_STATUS: &str = "netremote.sys.rsa.status";
 
 // Airplay
 
@@ -1257,7 +1257,7 @@ impl FsApi {
     ) -> Result<Vec<Item>, Error> {
         let max_items = 65536;
         let url = match session_id {
-            None => format!("http://{host}/{FSAPI_PATH}/{LIST_GET_NEXT_PATH}/{node}?pin={pin}&maxItems={max_items}"),
+            None => format!("http://{host}/{FSAPI_PATH}/{LIST_GET_NEXT_PATH}/{node}/-1?pin={pin}&maxItems={max_items}"),
             Some(sid) => format!(
                 "http://{host}/{FSAPI_PATH}/{LIST_GET_NEXT_PATH}/{node}/-1?pin={pin}&SID={sid}&maxItems={max_items}"
             ),
@@ -1292,19 +1292,20 @@ impl FsApi {
         session_id: SessionID,
         host: D,
         pin: D,
-    ) -> Result<Vec<Notification>, Error> {
+    ) -> Result<Option<Vec<Notification>>, Error> {
         let url =
             format!("http://{host}/{FSAPI_PATH}/{GET_NOTIFIES_PATH}?pin={pin}&sid={session_id}");
 
         let response = Response::from_str(&reqwest::get(url).await?.text().await?)?;
 
-        // TODO: Handle `ResponseStatus::FsTimeout`
-        if ResponseStatus::Ok != response.status {
-            return Err(Error::InvalidStatus);
+        match response.status {
+            ResponseStatus::Ok => (),
+            ResponseStatus::Timeout => return Ok(None),
+            _ => return Err(Error::InvalidStatus),
         }
 
         match response.data {
-            Some(Data::Notify(notifications)) => Ok(notifications),
+            Some(Data::Notify(notifications)) => Ok(Some(notifications)),
             _ => Err(Error::InvalidData),
         }
     }

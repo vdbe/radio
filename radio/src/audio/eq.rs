@@ -1,8 +1,9 @@
-use std::{borrow::Borrow, fmt::Display};
+use std::fmt::Display;
+use tokio::sync::Mutex;
+
+use fsapi::{FsApi, Node, Value};
 
 use crate::{Error, Radio};
-use fsapi::{FsApi, Node, Value};
-use tokio::sync::Mutex;
 
 #[derive(Debug)]
 pub struct Eq {

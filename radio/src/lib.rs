@@ -1,8 +1,4 @@
 #![feature(mixed_integer_ops)]
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::sync::Arc;
-
 use fsapi::{FsApi, Node, Notification, SessionID, Value};
 use tokio::sync::Mutex;
 
@@ -10,6 +6,7 @@ use audio::eq::EqPreset;
 use audio::Audio;
 pub use error::Error;
 use mode::Mode;
+use nav::Nav;
 use player::Player;
 use power::Power;
 use sleep::Sleep;
@@ -17,6 +14,7 @@ use sleep::Sleep;
 pub mod audio;
 pub mod error;
 pub mod mode;
+pub mod nav;
 pub mod player;
 pub mod power;
 pub mod sleep;
@@ -28,6 +26,7 @@ pub struct Radio {
     pub(crate) session_id: SessionID,
     pub audio: Audio,
     pub player: Player,
+    pub nav: Nav,
     pub power: Power,
     pub sleep: Sleep,
     pub mode: Mutex<Mode>,
@@ -44,6 +43,8 @@ impl Radio {
 
         let player = Player::new(&host, &pin).await?;
 
+        let nav = Nav::new(&host, &pin).await?;
+
         let power = Power::new(&host, &pin).await?;
 
         let sleep = Sleep::new(&host, &pin).await?;
@@ -56,13 +57,14 @@ impl Radio {
             session_id,
             audio,
             player,
+            nav,
             power,
             sleep,
             mode: Mutex::new(mode),
         })
     }
 
-    pub async fn get_notifications(&self) -> Result<Vec<Notification>, Error> {
+    pub async fn get_notifications(&self) -> Result<Option<Vec<Notification>>, Error> {
         //let host = radio.host.clone();
         //let pin = radio.pin.clone();
         //let session_id = radio.session_id;
@@ -76,7 +78,7 @@ impl Radio {
     pub async fn handle_notification(&self, notification: Notification) -> Result<(), Error> {
         use Node::*;
 
-        match dbg!(notification.node) {
+        match notification.node {
             SysAudioVolume => {
                 if let Value::U8(volume) = notification.value {
                     *self.audio.volume.volume.lock().await = volume as u32;
@@ -155,6 +157,8 @@ impl Radio {
             }
             PlayServiceIdsEcc => (),
             SysState => (),
+            SysClockLocalTime => (),
+            SysClockLocalDate => (),
 
             node => panic!("Update node: {:?}", node),
         }
