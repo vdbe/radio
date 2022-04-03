@@ -21,7 +21,7 @@ pub enum Mode {
 
 impl Radio {
     pub async fn mode_set(&self, mode: Mode) -> Result<(), Error> {
-        Mode::set(mode, &self.host, &self.pin).await?;
+        Mode::set(mode, &self.host, self.pin).await?;
 
         //self.mode = mode;
         Ok(())
@@ -29,8 +29,8 @@ impl Radio {
 }
 
 impl Mode {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let mode = match FsApi::get(Node::SysMode, &host, &pin).await? {
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let mode = match FsApi::get(Node::SysMode, &host, pin).await? {
             Value::U32(mode) => mode.into(),
             _ => unreachable!("SysMode returns a U32"),
         };
@@ -38,7 +38,7 @@ impl Mode {
         Ok(mode)
     }
 
-    pub async fn set<D: Display>(mode: Mode, host: D, pin: D) -> Result<(), Error> {
+    pub async fn set<D: Display>(mode: Mode, host: D, pin: u32) -> Result<(), Error> {
         if mode == Mode::FallBack {
             return Err(Error::InvalidValue);
         }

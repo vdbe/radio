@@ -22,7 +22,7 @@ pub mod sleep;
 #[derive(Debug)]
 pub struct Radio {
     pub(crate) host: String,
-    pub(crate) pin: String,
+    pub(crate) pin: u32,
     pub(crate) session_id: SessionID,
     pub audio: Audio,
     pub player: Player,
@@ -33,23 +33,22 @@ pub struct Radio {
 }
 
 impl Radio {
-    pub async fn new<T: ToString>(host: T, pin: T) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new<T: ToString>(host: T, pin: u32) -> Result<Self, Box<dyn std::error::Error>> {
         let host = host.to_string();
-        let pin = pin.to_string();
 
-        let session_id = FsApi::create_session(&host, &pin).await?;
+        let session_id = FsApi::create_session(&host, pin).await?;
 
-        let audio = Audio::new(&host, &pin).await?;
+        let audio = Audio::new(&host, pin).await?;
 
-        let player = Player::new(&host, &pin).await?;
+        let player = Player::new(&host, pin).await?;
 
-        let nav = Nav::new(&host, &pin).await?;
+        let nav = Nav::new(&host, pin).await?;
 
-        let power = Power::new(&host, &pin).await?;
+        let power = Power::new(&host, pin).await?;
 
-        let sleep = Sleep::new(&host, &pin).await?;
+        let sleep = Sleep::new(&host, pin).await?;
 
-        let mode = Mode::new(&host, &pin).await?;
+        let mode = Mode::new(&host, pin).await?;
 
         Ok(Self {
             host,
@@ -69,8 +68,7 @@ impl Radio {
         //let pin = radio.pin.clone();
         //let session_id = radio.session_id;
 
-        let notifications =
-            FsApi::get_notifications(self.session_id, &self.host, &self.pin).await?;
+        let notifications = FsApi::get_notifications(self.session_id, &self.host, self.pin).await?;
 
         Ok(notifications)
     }

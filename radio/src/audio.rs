@@ -14,10 +14,10 @@ pub struct Audio {
 }
 
 impl Audio {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let volume = Volume::new(&host, &pin).await?;
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let volume = Volume::new(&host, pin).await?;
 
-        let eq = Eq::new(&host, &pin).await?;
+        let eq = Eq::new(&host, pin).await?;
 
         Ok(Self { volume, eq })
     }

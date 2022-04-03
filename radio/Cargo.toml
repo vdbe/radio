@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 fsapi = { path = "../fsapi" }
-tokio = { version = "1.0", features = ["sync"] }
+tokio = { version = "1", features = ["sync"] }

@@ -41,6 +41,7 @@ impl std::error::Error for Error {}
 
 impl From<FsApiError> for Error {
     fn from(err: FsApiError) -> Self {
+        dbg!(&err);
         match err {
             FsApiError::WrongPin => Error::Auth,
             FsApiError::Timeout => Error::Timeout,

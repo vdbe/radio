@@ -1209,7 +1209,7 @@ impl TryFrom<String> for Node {
 
 impl FsApi {
     /// Gets the vlaue of an node
-    pub async fn get<D: Display>(node: Node, host: D, pin: D) -> Result<Value, Error> {
+    pub async fn get<D: Display>(node: Node, host: D, pin: u32) -> Result<Value, Error> {
         let url = format!("http://{host}/{FSAPI_PATH}/{GET_PATH}/{node}?pin={pin}");
 
         let reponse = Response::from_str(&reqwest::get(url).await?.text().await?)?;
@@ -1229,7 +1229,7 @@ impl FsApi {
         node: Node,
         param: V,
         host: D,
-        pin: D,
+        pin: u32,
     ) -> Result<(), Error> {
         let url = format!("http://{host}/{FSAPI_PATH}/{SET_PATH}/{node}?pin={pin}&value={param}");
 
@@ -1253,7 +1253,7 @@ impl FsApi {
         node: Node,
         session_id: Option<SessionID>,
         host: D,
-        pin: D,
+        pin: u32,
     ) -> Result<Vec<Item>, Error> {
         let max_items = 65536;
         let url = match session_id {
@@ -1291,7 +1291,7 @@ impl FsApi {
     pub async fn get_notifications<D: Display>(
         session_id: SessionID,
         host: D,
-        pin: D,
+        pin: u32,
     ) -> Result<Option<Vec<Notification>>, Error> {
         let url =
             format!("http://{host}/{FSAPI_PATH}/{GET_NOTIFIES_PATH}?pin={pin}&sid={session_id}");
@@ -1314,7 +1314,7 @@ impl FsApi {
     ///
     /// There can only be 1 session at a time.
     /// If a new is created while another existed the old one will be purged
-    pub async fn create_session<D: Display>(host: D, pin: D) -> Result<SessionID, Error> {
+    pub async fn create_session<D: Display>(host: D, pin: u32) -> Result<SessionID, Error> {
         let url = format!("http://{host}/{FSAPI_PATH}/{CREATE_SESSION_PATH}?pin={pin}");
 
         let response = Response::from_str(&reqwest::get(url).await?.text().await?)?;
@@ -1333,7 +1333,7 @@ impl FsApi {
     pub async fn delete_session<D: Display>(
         session_id: SessionID,
         host: D,
-        pin: D,
+        pin: u32,
     ) -> Result<(), Error> {
         let url =
             format!("http://{host}/{FSAPI_PATH}/{DELETE_SESSION_PATH}?pin={pin}&sid={session_id}");

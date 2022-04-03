@@ -17,10 +17,10 @@ pub struct Player {
 }
 
 impl Player {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let info = PlayerInfo::new(&host, &pin).await?;
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let info = PlayerInfo::new(&host, pin).await?;
 
-        let status = Status::get(&host, &pin).await?;
+        let status = Status::get(&host, pin).await?;
 
         Ok(Self {
             info,
@@ -28,21 +28,25 @@ impl Player {
         })
     }
 
-    async fn control_set<D: Display, O: Display>(option: O, host: D, pin: D) -> Result<(), Error> {
-        FsApi::set(Node::PlayControl, option, &host, &pin).await?;
+    async fn control_set<D: Display, O: Display>(
+        option: O,
+        host: D,
+        pin: u32,
+    ) -> Result<(), Error> {
+        FsApi::set(Node::PlayControl, option, &host, pin).await?;
 
         Ok(())
     }
 
-    pub async fn toggle<D: Display>(host: D, pin: D) -> Result<(), Error> {
+    pub async fn toggle<D: Display>(host: D, pin: u32) -> Result<(), Error> {
         Self::control_set(0, host, pin).await
     }
 
-    pub async fn next<D: Display>(host: D, pin: D) -> Result<(), Error> {
+    pub async fn next<D: Display>(host: D, pin: u32) -> Result<(), Error> {
         Self::control_set(3, host, pin).await
     }
 
-    pub async fn prev<D: Display>(host: D, pin: D) -> Result<(), Error> {
+    pub async fn prev<D: Display>(host: D, pin: u32) -> Result<(), Error> {
         Self::control_set(4, host, pin).await
     }
 

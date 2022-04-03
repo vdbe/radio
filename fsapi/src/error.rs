@@ -52,6 +52,7 @@ impl From<InternalError> for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
+        dbg!(&err);
         if err.is_status() {
             use reqwest::StatusCode;
 

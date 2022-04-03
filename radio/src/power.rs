@@ -12,13 +12,13 @@ pub struct Power {
 
 impl Radio {
     pub async fn power_set(&self, power: bool) -> Result<(), Error> {
-        self.power.set(power, &self.host, &self.pin).await
+        self.power.set(power, &self.host, self.pin).await
     }
 }
 
 impl Power {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let state = match FsApi::get(Node::SysPower, &host, &pin).await? {
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let state = match FsApi::get(Node::SysPower, &host, pin).await? {
             fsapi::Value::U8(state) => state == 1,
             _ => unreachable!("Power returns a U8"),
         };
@@ -28,7 +28,7 @@ impl Power {
         })
     }
 
-    pub async fn set<D: Display>(&self, state: bool, host: D, pin: D) -> Result<(), Error> {
+    pub async fn set<D: Display>(&self, state: bool, host: D, pin: u32) -> Result<(), Error> {
         let lock = self.state.lock().await;
         let old_state = *lock;
         drop(lock);
@@ -42,7 +42,7 @@ impl Power {
         Ok(())
     }
 
-    pub async fn toggle<D: Display>(&self, host: D, pin: D) -> Result<bool, Error> {
+    pub async fn toggle<D: Display>(&self, host: D, pin: u32) -> Result<bool, Error> {
         let lock = self.state.lock().await;
         let new_state = !*lock;
         drop(lock);

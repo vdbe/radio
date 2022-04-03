@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     let host = env::var("HOST")?;
-    let pin = env::var("PIN")?;
+    let pin = env::var("PIN")?.parse()?;
 
     let radio = Radio::new(host, pin).await?;
     dbg!(radio);

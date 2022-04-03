@@ -15,15 +15,15 @@ pub struct Sleep {
 
 impl Radio {
     pub async fn sleep_in(&self, sleep_in: Duration) -> Result<(), Error> {
-        FsApi::set(Node::SysSleep, sleep_in.as_secs(), &self.host, &self.pin).await?;
+        FsApi::set(Node::SysSleep, sleep_in.as_secs(), &self.host, self.pin).await?;
 
         Ok(())
     }
 }
 
 impl Sleep {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let sleep_in = match FsApi::get(Node::SysSleep, &host, &pin).await? {
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let sleep_in = match FsApi::get(Node::SysSleep, &host, pin).await? {
             fsapi::Value::U32(duration) => Duration::from_secs(duration.into()),
             _ => unreachable!("Power returns a U32"),
         };
@@ -33,11 +33,11 @@ impl Sleep {
         })
     }
 
-    pub async fn setn<D: Display>(
+    pub async fn set<D: Display>(
         &mut self,
         sleep_in: Duration,
         host: D,
-        pin: D,
+        pin: u32,
     ) -> Result<(), Error> {
         FsApi::set(Node::SysSleep, sleep_in.as_secs(), host, pin).await?;
 

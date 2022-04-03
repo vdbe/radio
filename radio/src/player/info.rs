@@ -25,33 +25,33 @@ pub struct PlayerInfo {
 }
 
 impl PlayerInfo {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let name = match FsApi::get(Node::PlayInfoName, &host, &pin).await? {
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let name = match FsApi::get(Node::PlayInfoName, &host, pin).await? {
             Value::Text(name) => name,
             _ => unreachable!("PlayInfoName returns a Text"),
         };
 
-        let text = match FsApi::get(Node::PlayInfoText, &host, &pin).await? {
+        let text = match FsApi::get(Node::PlayInfoText, &host, pin).await? {
             Value::Text(text) => text,
             _ => unreachable!("PlayInfoText returns a Text"),
         };
 
-        let album = match FsApi::get(Node::PlayInfoAlbum, &host, &pin).await? {
+        let album = match FsApi::get(Node::PlayInfoAlbum, &host, pin).await? {
             Value::Text(album) => album,
             _ => unreachable!("PlayInfoAlbum returns a Text"),
         };
 
-        let artist = match FsApi::get(Node::PlayInfoArtist, &host, &pin).await? {
+        let artist = match FsApi::get(Node::PlayInfoArtist, &host, pin).await? {
             Value::Text(artist) => artist,
             _ => unreachable!("PlayInfoArtist returns a Text"),
         };
 
-        let duration = match FsApi::get(Node::PlayInfoDuration, &host, &pin).await? {
+        let duration = match FsApi::get(Node::PlayInfoDuration, &host, pin).await? {
             Value::U32(duration) => Duration::from_millis(duration.into()),
             _ => unreachable!("PlayInfoDuration returns a U32"),
         };
 
-        let graphic_uri = match FsApi::get(Node::PlayInfoGraphicUri, &host, &pin).await? {
+        let graphic_uri = match FsApi::get(Node::PlayInfoGraphicUri, &host, pin).await? {
             Value::Text(graphic_uri) => graphic_uri,
             _ => unreachable!("PlayInfoGraphicUri returns a Text"),
         };

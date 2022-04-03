@@ -14,39 +14,40 @@ pub struct Volume {
 
 impl Radio {
     pub async fn volume_set(&self, volume: u32) -> Result<(), Error> {
-        self.audio.volume.set(volume, &self.host, &self.pin).await
+        self.audio.volume.set(volume, &self.host, self.pin).await
     }
 
     pub async fn volume_up(&self, change: i32) -> Result<(), Error> {
-        self.audio.volume.up(change, &self.host, &self.pin).await
+        self.audio.volume.up(change, &self.host, self.pin).await
     }
 
     pub async fn volume_mute(&self, mute: bool) -> Result<(), Error> {
-        self.audio.volume.mute(mute, &self.host, &self.pin).await
+        self.audio.volume.mute(mute, &self.host, self.pin).await
     }
 
     pub async fn volume_toggle(&self) -> Result<bool, Error> {
-        self.audio.volume.toggle(&self.host, &self.pin).await
+        self.audio.volume.toggle(&self.host, self.pin).await
     }
 }
 
 impl Volume {
-    pub async fn new<D: Display>(host: D, pin: D) -> Result<Self, Error> {
-        let max_volume: u32 = match FsApi::get(Node::SysCapsVolumeSteps, &host, &pin).await? {
+    pub async fn new<D: Display>(host: D, pin: u32) -> Result<Self, Error> {
+        let max_volume: u32 = match FsApi::get(Node::SysCapsVolumeSteps, &host, pin).await? {
             fsapi::Value::U8(volume_steps) => {
-                volume_steps.checked_sub(1).ok_or(Error::Empty)? as u32
+                (volume_steps as u32).checked_add(1).ok_or(Error::Empty)?
+                //volume_steps.checked_sub(1).ok_or(Error::Empty)? as u32
             }
             _ => unreachable!("SysCapsVolumeSteps returns a U8"),
         };
 
-        let volume: u32 = match FsApi::get(Node::SysAudioVolume, &host, &pin).await? {
+        let volume: u32 = match FsApi::get(Node::SysAudioVolume, &host, pin).await? {
             fsapi::Value::U8(volume) => volume as u32,
-            _ => unreachable!("SysCapsVolume returns a U8"),
+            _ => unreachable!("SysAudioVolume returns a U8"),
         };
 
-        let muted = match FsApi::get(Node::SysAudioMute, &host, &pin).await? {
+        let muted = match FsApi::get(Node::SysAudioMute, &host, pin).await? {
             fsapi::Value::U8(muted) => muted == 1,
-            _ => unreachable!("SysCapsMute returns a U8"),
+            _ => unreachable!("SysAudioMute returns a U8"),
         };
 
         Ok(Self {
@@ -56,7 +57,7 @@ impl Volume {
         })
     }
 
-    pub async fn set<D: Display>(&self, volume: u32, host: D, pin: D) -> Result<(), Error> {
+    pub async fn set<D: Display>(&self, volume: u32, host: D, pin: u32) -> Result<(), Error> {
         let volume = if volume > self.max_volume {
             self.max_volume
         } else {
@@ -70,7 +71,7 @@ impl Volume {
         Ok(())
     }
 
-    pub async fn up<D: Display>(&self, change: i32, host: D, pin: D) -> Result<(), Error> {
+    pub async fn up<D: Display>(&self, change: i32, host: D, pin: u32) -> Result<(), Error> {
         let new_volume = self
             .volume
             .lock()
@@ -81,7 +82,7 @@ impl Volume {
         self.set(new_volume, host, pin).await
     }
 
-    pub async fn mute<D: Display>(&self, mute: bool, host: D, pin: D) -> Result<(), Error> {
+    pub async fn mute<D: Display>(&self, mute: bool, host: D, pin: u32) -> Result<(), Error> {
         if self.muted.lock().await.eq(&mute) {
             FsApi::set(Node::SysAudioMute, if mute { 1 } else { 0 }, host, pin).await?;
         };
@@ -91,7 +92,7 @@ impl Volume {
         Ok(())
     }
 
-    pub async fn toggle<D: Display>(&self, host: D, pin: D) -> Result<bool, Error> {
+    pub async fn toggle<D: Display>(&self, host: D, pin: u32) -> Result<bool, Error> {
         let new = !*self.muted.lock().await;
 
         FsApi::set(Node::SysAudioMute, if new { 1 } else { 0 }, host, pin).await?;
