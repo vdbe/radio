@@ -1,5 +1,7 @@
 use std::fmt;
 
+use quick_xml::events::attributes::AttrError;
+
 use super::Error;
 use crate::macros::quick_impl;
 
@@ -57,5 +59,6 @@ impl From<Error> for InternalError {
 
 quick_impl!(From<reqwest::Error> for InternalError);
 quick_impl!(From<quick_xml::Error> for InternalError);
+quick_impl!(From<AttrError> for InternalError);
 quick_impl!(From<std::num::ParseIntError> for InternalError);
 quick_impl!(From<std::string::FromUtf8Error> for InternalError);

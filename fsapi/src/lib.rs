@@ -1,4 +1,4 @@
-use quick_xml::events::Event;
+use quick_xml::{events::Event, name::QName};
 use std::fmt::Display;
 
 pub use error::Error;
@@ -1351,24 +1351,16 @@ impl FsApi {
     }
 }
 
+// TODO: rewrite this impl
 impl Value {
-    fn from_reader(
-        reader: &mut quick_xml::Reader<&[u8]>,
-        buf: &mut Vec<u8>,
-    ) -> Result<Value, InternalError> {
-        if let Event::Start(ref e) = reader.read_event(buf)? {
+    fn from_reader(reader: &mut quick_xml::Reader<&[u8]>) -> Result<Value, InternalError> {
+        if let Event::Start(ref e) = reader.read_event()? {
             match e.name() {
-                b"c8_array" => Ok(Value::Text(reader.read_text(e.name(), &mut Vec::new())?)),
-                b"u8" => Ok(Value::U8(
-                    reader.read_text(e.name(), &mut Vec::new())?.parse()?,
-                )),
-                b"s16" => Ok(Value::S16(
-                    reader.read_text(e.name(), &mut Vec::new())?.parse()?,
-                )),
-                b"u32" => Ok(Value::U32(
-                    reader.read_text(e.name(), &mut Vec::new())?.parse()?,
-                )),
-                b"array" => Ok(Value::Array(reader.read_text(e.name(), &mut Vec::new())?)),
+                QName(b"c8_array") => Ok(Value::Text(reader.read_text(e.name())?.to_string())),
+                QName(b"u8") => Ok(Value::U8(reader.read_text(e.name())?.parse()?)),
+                QName(b"s16") => Ok(Value::S16(reader.read_text(e.name())?.parse()?)),
+                QName(b"u32") => Ok(Value::U32(reader.read_text(e.name())?.parse()?)),
+                QName(b"array") => Ok(Value::Array(reader.read_text(e.name())?.to_string())),
                 _ => Err(InternalError::Value(String::from("Unknown option"))),
             }
         } else {
@@ -1378,12 +1370,9 @@ impl Value {
 }
 
 impl SessionID {
-    fn from_reader(
-        reader: &mut quick_xml::Reader<&[u8]>,
-        buf: &mut Vec<u8>,
-    ) -> Result<Self, InternalError> {
-        if let Event::Text(ref e) = reader.read_event(buf)? {
-            Ok(Self(String::from_utf8(e.escaped().to_vec())?.parse()?))
+    fn from_reader(reader: &mut quick_xml::Reader<&[u8]>) -> Result<Self, InternalError> {
+        if let Event::Text(ref e) = reader.read_event()? {
+            Ok(Self(e.escape_ascii().to_string().parse()?))
         } else {
             Err(InternalError::SessionId(String::from(
                 "Incorrect value format",
@@ -1405,13 +1394,11 @@ impl Item {
 
             'field: loop {
                 // Read new `Field`
-                match reader.read_event(&mut Vec::new())? {
+                match reader.read_event()? {
                     Event::Start(ref e) => match e.name() {
-                        b"field" => {
+                        QName(b"field") => {
                             let name: String = match e.attributes().next() {
-                                Some(attribute) => {
-                                    String::from_utf8(attribute?.value.to_mut().to_vec())?
-                                }
+                                Some(attribute) => String::from_utf8(attribute?.value.to_vec())?,
                                 None => {
                                     return Err(InternalError::Item(String::from(
                                         "Invalid field name format",
@@ -1419,17 +1406,17 @@ impl Item {
                                 }
                             };
 
-                            let value = Value::from_reader(reader, &mut Vec::new())?;
+                            let value = Value::from_reader(reader)?;
 
                             // Throw away </field>
-                            reader.read_event(&mut Vec::new())?;
+                            reader.read_event()?;
 
                             fields.push(Field { name, value });
                         }
                         _ => return Err(InternalError::Field(String::from("Unexpected start"))),
                     },
                     Event::End(ref e) => match e.name() {
-                        b"item" => break 'field,
+                        QName(b"item") => break 'field,
                         _ => return Err(InternalError::Field(String::from("Unexpected end"))),
                     },
                     _ => return Err(InternalError::Field(String::from("Unexpected event"))),
@@ -1440,7 +1427,7 @@ impl Item {
 
             // Check if there are more items, if not break 'item
             // the key for the next item is lost if not collected here
-            match reader.read_event(&mut Vec::new())? {
+            match reader.read_event()? {
                 Event::Start(ref e) => {
                     key = match e.attributes().next() {
                         Some(attribute) => {
@@ -1452,7 +1439,7 @@ impl Item {
                     };
                 }
                 Event::Empty(ref e) => match e.name() {
-                    b"listend" => break 'item, // </listend>
+                    QName(b"listend") => break 'item, // </listend>
                     _ => return Err(InternalError::Item(String::from("Unexpected end"))),
                 },
                 _ => return Err(InternalError::Item(String::from("Unexpected event"))),
@@ -1473,20 +1460,20 @@ impl Notification {
 
         loop {
             // Throw away <value>
-            reader.read_event(&mut Vec::new())?;
-            let value = Value::from_reader(reader, &mut Vec::new())?;
+            reader.read_event()?;
+            let value = Value::from_reader(reader)?;
 
             // Throw away </value>
-            reader.read_event(&mut Vec::new())?;
+            reader.read_event()?;
 
             // Throw away </notify>
-            reader.read_event(&mut Vec::new())?;
+            reader.read_event()?;
 
             notifications.push(Notification { node, value });
 
             // Check if there are more notifications, if not break 'notifu
             // the node for the next item is lost if not collected here
-            node = match reader.read_event(&mut Vec::new())? {
+            node = match reader.read_event()? {
                 Event::Start(ref e) => {
                     // <notify node="...">
                     match e.attributes().next() {
@@ -1501,7 +1488,7 @@ impl Notification {
                     }
                 }
                 Event::End(ref e) => match e.name() {
-                    b"fsapiResponse" => break, // </fsapiResponse>
+                    QName(b"fsapiResponse") => break, // </fsapiResponse>
                     _ => return Err(InternalError::Notify(String::from("Unexpected end"))),
                 },
                 _ => return Err(InternalError::Notify(String::from("Unexpected event"))),
@@ -1517,11 +1504,11 @@ impl Data {
         reader: &mut quick_xml::Reader<&[u8]>,
         buf: &mut Vec<u8>,
     ) -> Result<Option<Self>, InternalError> {
-        match reader.read_event(buf)? {
+        match reader.read_event()? {
             Event::Start(ref e) => match e.name() {
-                b"value" => Ok(Some(Self::Value(Value::from_reader(reader, buf)?))),
-                b"sessionId" => Ok(Some(Self::SessionID(SessionID::from_reader(reader, buf)?))),
-                b"item" => {
+                QName(b"value") => Ok(Some(Self::Value(Value::from_reader(reader)?))),
+                QName(b"sessionId") => Ok(Some(Self::SessionID(SessionID::from_reader(reader)?))),
+                QName(b"item") => {
                     let key: u32 = match e.attributes().next() {
                         Some(attribute) => {
                             String::from_utf8(attribute?.value.to_mut().to_vec())?.parse()?
@@ -1533,7 +1520,7 @@ impl Data {
 
                     Ok(Some(Data::Items(Item::items_from_reader(key, reader)?)))
                 }
-                b"notify" => {
+                QName(b"notify") => {
                     let node: Node = match e.attributes().next() {
                         Some(attribute) => {
                             Node::try_from(String::from_utf8(attribute?.value.to_mut().to_vec())?)?
@@ -1567,11 +1554,12 @@ impl Response {
         let mut buf = Vec::new();
 
         // Throw away <fsapiResponse>
-        reader.read_event(&mut buf)?;
+        reader.read_event()?;
 
-        let status = if let Event::Start(ref e) = reader.read_event(&mut buf)? {
+        let status = if let Event::Start(ref e) = reader.read_event()? {
             use ResponseStatus::*;
-            match reader.read_text(e.name(), &mut Vec::new())?.as_str() {
+            // TODO: Fix this match `to_string().as_str()`???
+            match reader.read_text(e.name())?.to_string().as_str() {
                 STATUS_FS_OK => Ok,
                 STATUS_FS_FAIL => Fail,
                 STATUS_FS_PACKET_BAD => PacketBad,
